@@ -155,3 +155,54 @@ fs.unlink("6.writeMe.txt", function() {
     console.log("delete writeMe.txt file");
 })
 ```
+
+## 8 流和管道
+ls | grep app 这个命令在 linux 或 mac 才适合，或者 windows 的 git bash 也可以的。
+如果是 windows 的命令提示符，对应的查找文件的命令应该是： dir | findstr app
+### 提高性能
+文件系统读取时是一次性把文件放入内存中，如果文件很大，可以用流处理，会先把内容放在buffer 缓存中
+### 在nodejs中，有四种stream类型：
+* Readable：用来读取数据，比如 fs.createReadStream()。
+* Writable：用来写数据，比如 fs.createWriteStream()。
+* Duplex：可读+可写，比如 net.Socket()。
+* Transform：在读写的过程中，可以对数据进行修改，比如 zlib.createDeflate()（数据压缩/解压）。
+
+### 1.读取流的实例
+```javascript
+// 流和管道
+var fs = require('fs');
+
+//__dirname 当前目录
+//createReadStream创建输入流， 
+var myReadStream = fs.createReadStream(__dirname + '/6.readMe.txt',);
+//写入一个流
+var myWriteStream = fs.createWriteStream(__dirname + '/6.writeMe.txt');
+
+myReadStream.setEncoding('utf8');
+var  data = ''
+//流是事件的实例
+myReadStream.on('data', function (chunk) {
+  console.log('new chunk received');
+  //data += chunk
+  myWriteStream.write(chunk)
+})
+
+//接受完数据后的处理事件
+myReadStream.on('end', function () {
+  console.log(data);
+})
+```
+
+### 2.使用管道快速读文件，并写文件
+```javascript
+// 流和管道
+var fs = require('fs');
+
+//__dirname 当前目录
+//createReadStream创建输入流， 
+var myReadStream = fs.createReadStream(__dirname + '/6.readMe.txt',);
+//写入一个流
+var myWriteStream = fs.createWriteStream(__dirname + '/6.writeMe.txt')
+myReadStream.setEncoding('utf8');
+myReadStream.pipe(myWriteStream);
+```
