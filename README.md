@@ -206,3 +206,46 @@ var myWriteStream = fs.createWriteStream(__dirname + '/6.writeMe.txt')
 myReadStream.setEncoding('utf8');
 myReadStream.pipe(myWriteStream);
 ```
+
+## 9. web 服务器介绍
+
+![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/2.png)
+
+```javascript
+server.listen(3000, '127.0.0.1');
+
+下面两个都可以向页面写入文本。
+  response.write('Hello from out application ');
+  //结束
+  response.end(' + request end');
+```
+
+## 10 web 服务器响应 JSON
+```javascript
+
+var http = require('http');
+var onRequest = function(request, response) {
+    console.log('Request received');
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    // response.write('Hello from out application');
+    var myObj = {
+        name: "hfpp2012",
+        job: "programmer",
+        age: 27
+    };
+    response.end(JSON.stringify(myObj));
+}
+
+var server = http.createServer(onRequest);
+
+server.listen(3000, '127.0.0.1');
+console.log('Server started on localhost port 3000');
+```
+![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/3.png)
+![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/4.png)
+response.end(JSON.stringify(myObj));
+ * JSON.stringify() 方法用于将 JavaScript 值转换为 JSON 字符串。用于传输
+![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/5.png)
+
+* 反序列化JSON.parse
+* ![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/6.png)
