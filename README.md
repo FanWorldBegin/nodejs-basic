@@ -418,3 +418,140 @@ exports.startServer = startServer;
 
 </html>
 ```
+
+## 14.路由重构代码
+### app.js
+```javascript
+var server = require('./server');
+var router = require('./router');
+//处理函数跳转
+var handler = require('./handler');
+
+//定义 路由和处理的对应
+var handle = {};
+handle["/"] = handler.home;
+handle['/home'] = handler.home;
+handle['/review'] = handler.review;
+handle['/api/v1/records'] = handler.api_records;
+
+//将参数传入server
+server.startServer(router.route, handle);
+```
+
+
+### server.js
+```javascript
+var http = require('http');
+var fs = require('fs');
+
+function startServer(route, handle) {
+  var onRequest = function (request, response) {
+    console.log('Request received ' + request.url);
+    route(handle, request.url, response);
+  }
+
+  var server = http.createServer(onRequest);
+
+  server.listen(3000, '127.0.0.1');
+  console.log('Server started on localhost port 3000');
+}
+
+module.exports.startServer = startServer;
+```
+
+
+### router.js
+```javascript
+var fs = require('fs');
+
+function route(handle, pathname, response) {
+    console.log('Routing a request for ' + pathname);
+    if (typeof handle[pathname] === 'function') {
+        handle[pathname](response);
+    } else {
+        response.writeHead(200, { 'Content-Type': 'text/html' });
+        fs.createReadStream(__dirname + '/404.html', 'utf8').pipe(response);
+    }
+}
+
+module.exports.route = route;
+
+```
+
+
+
+### handler.js
+
+```javascript
+var fs = require('fs');
+
+function home(response) {
+    response.writeHead(200, { 'Content-Type': 'text/html' });
+    fs.createReadStream(__dirname + '/index.html', 'utf8').pipe(response);
+}
+
+function review(response) {
+    response.writeHead(200, { 'Content-Type': 'text/html' });
+    fs.createReadStream(__dirname + '/review.html', 'utf8').pipe(response);
+}
+
+function api_records(response) {
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    var jsonObj = {
+        name: "hfpp2012"
+    };
+    response.end(JSON.stringify(jsonObj));
+}
+
+module.exports = {
+    home: home,
+    review: review,
+    api_records: api_records
+}
+```
+
+## 15 web 服务器 使用 GET 或 POST 请求发送数据
+server.js
+1. 获取参数
+解析3000端口后的内容， 加上true返回 json 否则返回字符串
+var params = url.parse(request.url, true).query;
+server.js
+var url = require('url');  url的工具库
+```javascript
+
+var http = require('http');
+var fs = require('fs');
+var url = require('url');
+var querystring = require('querystring');
+
+function startServer(route, handle) {
+    var onRequest = function(request, response) {
+        var pathname = url.parse(request.url).pathname;
+        console.log('Request received ' + pathname);
+        var data = [];
+        request.on("error", function(err) {
+            console.error(err);
+        }).on("data", function(chunk) {
+            data.push(chunk);
+        }).on('end', function() {
+            if (request.method === "POST") {
+                if (data.length > 1e6) {
+                    request.connection.destroy();
+                }
+                data = Buffer.concat(data).toString();
+                route(handle, pathname, response, querystring.parse(data));
+            } else {
+                var params = url.parse(request.url, true).query;
+                route(handle, pathname, response, params);
+            }
+        });
+    }
+
+    var server = http.createServer(onRequest);
+
+    server.listen(3000, '127.0.0.1');
+    console.log('Server started on localhost port 3000');
+}
+
+module.exports.startServer = startServer;
+```
