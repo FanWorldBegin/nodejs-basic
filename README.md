@@ -249,3 +249,172 @@ response.end(JSON.stringify(myObj));
 
 * 反序列化JSON.parse
 * ![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/6.png)
+
+## 11 web 服务器 响应 HTML 页面
+如何响应HTML 页面
+提供·HTML 文件给浏览器，把内容响应到浏览器中
+### index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>lalala</title>
+</head>
+
+<body>
+    hello wolrd
+</body>
+
+</html>
+```
+
+11.js
+```javascript
+var http = require('http');
+var fs = require('fs');
+
+var onRequest = function (request, response) {
+  console.log('Request received');
+  response.writeHead(200, {
+    'Content-Type': 'text/html'
+  });
+  //通过流读取出出来
+  var myReadStream = fs.createReadStream(__dirname + '/11.index.html', 'utf8');
+  // response.write('Hello from out application');
+  //使用管道将文件输出到响应中
+  myReadStream.pipe(response);
+}
+
+var server = http.createServer(onRequest);
+
+server.listen(3000, '127.0.0.1');
+console.log('Server started on localhost port 3000');
+```
+
+## 12 web 服务器 用模块
+### 12.js
+```javascript
+var http = require('http');
+var fs = require('fs');
+
+function startServer() {
+  var onRequest = function (request, response) {
+    console.log('Request received');
+    response.writeHead(200, {
+      'Content-Type': 'text/html'
+    });
+    var myReadStream = fs.createReadStream(__dirname + '/index.html', 'utf8');
+    // response.write('Hello from out application');
+    myReadStream.pipe(response);
+  }
+
+  var server = http.createServer(onRequest);
+
+  server.listen(3000, '127.0.0.1');
+  console.log('Server started on localhost port 3000');
+}
+
+exports.startServer = startServer;
+```
+
+
+## 12.app.js
+```javascript
+var server = require('./12');
+server.startServer();
+```
+
+## 13 web 服务器 路由
+进入不同的路由请求不同的资源。
+* request.url 可以识别不同的路由
+### server.js
+```javascript
+var http = require('http');
+var fs = require('fs');
+
+function startServer() {
+  var onRequest = function (request, response) {
+    console.log('Request received ' + request.url);
+    // 如果是首页
+    if (request.url === '/' || request.url === '/home') {
+      response.writeHead(200, {
+        'Content-Type': 'text/html'
+      });
+      fs.createReadStream(__dirname + '/review.html', 'utf8').pipe(response);
+    } else if (request.url === '/review') {
+      // 如果是review 路由
+      response.writeHead(200, {
+        'Content-Type': 'text/html'
+      });
+      fs.createReadStream(__dirname + '/review.html', 'utf8').pipe(response);
+    } else if (request.url === '/api/v1/records') {
+      //如果是 api/v1/records 
+      response.writeHead(200, {
+        'Content-Type': 'application/json'
+      });
+
+      var jsonObj = {
+        name: "hfpp2012"
+      };
+      response.end(JSON.stringify(jsonObj));
+    } else {
+      //什么都没有找到
+      response.writeHead(400, {
+        'Content-Type': 'text/html'
+      });
+      fs.createReadStream(__dirname + '/404.html', 'utf8').pipe(response);
+    }
+  }
+
+  var server = http.createServer(onRequest);
+
+  server.listen(3000, '127.0.0.1');
+  console.log('Server started on localhost port 3000');
+}
+startServer()
+exports.startServer = startServer;
+
+```
+
+
+### review.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    review page
+</body>
+
+</html>
+```
+
+### 404.html
+```javascript
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    404 error page
+</body>
+
+</html>
+```
