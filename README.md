@@ -1,7 +1,8 @@
 # nodejs 基础总结
 
 ## 1.全局对象 __dirname __filename
-
+ __filename 文件路径
+__dirname  文件夹名
 ```javascript
 console.log(__dirname);
 console.log(__filename);
@@ -18,3 +19,6 @@ var timer = setInterval(function() {
     }
 }, 2000);
 ```
+
+输出
+![image](https://github.com/FanWorldBegin/nodejs-basic/blob/master/images/1.png)
